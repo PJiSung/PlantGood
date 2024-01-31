@@ -1,0 +1,160 @@
+@charset "EUC-KR";
+body, ul, li, h1, h2, h3, a {
+  margin:0;
+  padding:0;
+  list-style:none;
+  text-decoration:none;
+}
+a:link {
+    text-decoration: none;
+    color: black;
+}
+
+a:visited {
+    text-decoration: none;
+    color: black;
+}
+
+a:hover {
+    text-decoration: none;
+    color: black;
+}
+
+a:active {
+    text-decoration: none;
+    color: black;
+}
+
+#btn {
+	border: 1px solid blue;
+	background-color: rgba(0, 0, 0, 0);
+	color: blue;
+	padding: 5px;
+	border-top-left-radius: 5px;
+	border-bottom-left-radius: 5px;
+	border-top-right-radius: 5px;
+	border-bottom-right-radius: 5px;
+	margin-right: -4px;
+	height: 40px;
+}
+
+table {
+	table-layout: fixed;
+	width: 384px;
+
+}
+tr{
+	height:130px;
+	text-align:center;
+
+}
+td, th {
+	padding: 5px;
+}
+
+.set1 {
+	background-color: red;
+	color: white;
+	text-decoration: underline;
+	font-weight: bold;
+}
+
+#c_head {
+	height: 30px;
+	background-color: #eeeeee;
+}
+
+#c_width {
+	width: 500px;
+}
+
+.inputkind{
+	height: 30px;
+	padding: 0 16px;
+	width: 180px;
+	border: 2px solid #ddd;
+	border-radius: 4px;
+	font-family: 'Rubik', sans-serif;
+	outline: 0;
+	transition: .2s;
+	font-size:20px;
+}
+
+.inputdate{
+	height: 30px;
+	padding: 0 16px;
+	width: 180px;
+	border: 2px solid #ddd;
+	border-radius: 4px;
+	font-family: 'Rubik', sans-serif;
+	outline: 0;
+	transition: .2s;
+	font-size:20px;
+}
+
+.inputname{
+	height: 30px;
+	padding: 0 16px;
+	width: 180px;
+	border: 2px solid #ddd;
+	border-radius: 4px;
+	font-family: 'Rubik', sans-serif;
+	outline: 0;
+	transition: .2s;
+	font-size:20px;
+}
+
+.inputname:focus {
+	border-color: #66cc00;
+}
+
+.inputdate:focus {
+	border-color: #66cc00;
+}
+.left1{
+	margin-left:-155px;
+}
+.left2{
+	margin-left:-180px;
+}
+.left3{
+	margin-left:-117px;
+
+}
+.imgDeleteBtn{
+	float: center;
+	position: right;
+	background-color: #ef7d7d;
+	color: wheat;
+	font-weight: 900;
+	width: 30px;
+	height: 30px;
+	border-radius: 50%;
+	line-height: 26px;
+	text-align: center;
+	border: none;
+	display: block;
+	cursor: pointer;	
+	margin-left:190px;
+	margin-top:-30px;
+}
+
+.imgdiv{
+	width:0%;
+	float:left;
+	margin-top:-20px;
+	margin-left:30px;
+}
+.spandiv{
+	width:85%;
+	float:left;
+}
+.imgdiv2{
+	width:0%;
+	float:left;
+	margin-top:10px;
+	margin-left:30px;
+}
+.filemargin{
+	margin-left:50px;
+}

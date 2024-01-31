@@ -1,0 +1,148 @@
+@charset "EUC-KR";
+body, ul, li, h1, h2, h3, a {
+  margin:0;
+  padding:0;
+  list-style:none;
+  text-decoration:none;
+}
+table, th, td {
+  text-align: center;
+  border: 1px solid #bcbcbc;
+}
+a:link {
+    text-decoration: none;
+    color: black;
+}
+
+a:visited {
+    text-decoration: none;
+    color: black;
+}
+
+a:hover {
+    text-decoration: none;
+    color: black;
+}
+
+a:active {
+    text-decoration: none;
+    color: black;
+}
+
+#btn {
+	border: 1px solid blue;
+	background-color: rgba(0, 0, 0, 0);
+	color: blue;
+	padding: 5px;
+	border-top-left-radius: 5px;
+	border-bottom-left-radius: 5px;
+	border-top-right-radius: 5px;
+	border-bottom-right-radius: 5px;
+	margin-right: -4px;
+	height: 40px;
+}
+
+table {
+table-layout: fixed;
+	border-collapse: collapse;
+	width: 384px;
+}
+
+table, td, th {
+	border: solid 1px #cccccc;
+	height: 140px;
+}
+
+tr {
+	height: 40px;
+	text-align: center;
+}
+
+td, th {
+	padding: 5px;
+	font-size: 15pt;
+}
+
+.set1 {
+	background-color: red;
+	color: white;
+	text-decoration: underline;
+	font-weight: bold;
+}
+
+#c_head {
+	height: 30px;
+	background-color: #eeeeee;
+}
+
+#c_width {
+	width: 500px;
+}
+/* 검색박스 */
+search {
+  width: 300px;
+  margin: 0 auto;
+  padding-top: 8rem;
+}
+
+fieldset {
+  position: relative;
+  display: inline-block;
+  padding: 0 0 0 40px;
+  background: #fff;
+  border: 1px solid black;
+  border-radius: 5px;
+}
+
+input,
+button {
+  position: relative;
+  width: 140px;
+  height: 35px;
+  padding: 0;
+  display: inline-block;
+  float: left;
+}
+
+input {
+  color: #666;
+  z-index: 3;
+  border: 0 none;
+}
+input:focus {
+  outline: 0 none;
+}
+
+button {
+  width: 10px;
+  border: 0 none;
+  cursor: pointer;
+  -webkit-transform: translate(-60px, 0);
+      -ms-transform: translate(-60px, 0);
+          transform: translate(-40px, 0);
+}
+
+.fa-search {
+  font-size: 1.4rem;
+  color: #29abe2;
+  -webkit-transform: translate(-190px, 0);
+      -ms-transform: translate(-190px, 0);
+          transform: translate(-130px, 0);
+}
+.subpic{
+  position:relative;
+}
+
+.imtext{
+  position:absolute;
+  top:-1px;
+  left:0px;
+  z-index:1;
+  font-weight:bold;
+  color:black;
+}
+.imgtitle{
+	float:left;
+	margin-left:30px;
+	margin-top:30px;
+}

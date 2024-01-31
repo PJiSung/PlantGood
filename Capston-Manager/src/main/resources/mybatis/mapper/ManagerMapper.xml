@@ -1,0 +1,747 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jang.biz.mapper.ManagerMapper">
+
+	<insert id="addMain" keyProperty="mno">
+		<selectKey keyProperty="mno" resultType="int" order="BEFORE">
+			SELECT
+			COALESCE(MAX(mno), 0) + 1 AS mno
+			FROM manager_account
+		</selectKey>
+
+		INSERT INTO manager_main (
+		mno
+		,regdate
+		)
+		VALUES (
+		(SELECT NVL(MAX(mno),0)+1 FROM
+		manager_main)
+		,sysdate
+		)
+	</insert>
+	
+	<select id="NewOrdercnt" resultType="Order">
+		SELECT count(*) as neworcnt
+		FROM manager_order
+		WHERE orderstate = '주문접수' AND
+		to_char(regdate,'yyyymmdd') = to_char(sysdate,'yyyymmdd')
+	</select>
+	
+	<select id="CancelOrdercnt" resultType="Processing">
+		SELECT count(*) as cancelorcnt
+		FROM manager_processing
+		WHERE to_char(cancel,'yyyymmdd') = to_char(sysdate,'yyyymmdd')
+	</select>
+	
+	<select id="ReplyWaiting" resultType="Inquiry">
+		SELECT count(*) as replywaitcnt
+		FROM shop_inquiry
+		WHERE replycnt = 0 AND
+		to_char(regdate,'yyyymmdd') = to_char(sysdate,'yyyymmdd')
+	</select>
+
+	<select id="getMainList" resultType="Manager">
+		SELECT mno
+		,ordercnt
+		,to_char(take,'fm999,999,999,999') as take
+		,visitcnt
+		,joincnt
+		,inquirycnt
+		,to_char(regdate, 'YYYY-MM-DD')
+		regdate
+		FROM (SELECT * FROM manager_main order by mno desc)
+		WHERE
+		<![CDATA[rownum <= 7]]>
+	</select>
+
+	<select id="get7orderList" resultType="Manager">
+		SELECT SUM(ordercnt) as ordercnt
+		FROM (SELECT ordercnt
+		FROM manager_main
+		order by mno desc)
+		WHERE
+		<![CDATA[rownum <= 7]]>
+	</select>
+
+	<select id="get7takeList" resultType="Manager">
+		SELECT to_char(SUM(take),'fm999,999,999,999') as take
+		FROM (SELECT take
+		FROM manager_main
+		order by mno desc)
+		WHERE
+		<![CDATA[rownum <= 7]]>
+	</select>
+
+	<select id="get7visitcntList" resultType="Manager">
+		SELECT SUM(visitcnt) as visitcnt
+		FROM (SELECT visitcnt
+		FROM manager_main
+		order by mno desc)
+		WHERE
+		<![CDATA[rownum <= 7]]>
+	</select>
+
+	<select id="get7joincntList" resultType="Manager">
+		SELECT SUM(joincnt) as joincnt
+		FROM (SELECT joincnt
+		FROM manager_main
+		order by mno desc)
+		WHERE
+		<![CDATA[rownum <= 7]]>
+	</select>
+
+	<select id="get7inquirycntList" resultType="Manager">
+		SELECT SUM(inquirycnt) as inquirycnt
+		FROM (SELECT inquirycnt
+		FROM
+		manager_main
+		order by mno desc)
+		WHERE
+		<![CDATA[rownum <= 7]]>
+	</select>
+
+	<select id="get30orderList" resultType="Manager">
+		SELECT SUM(ordercnt) as
+		ordercnt
+		FROM manager_main
+		WHERE
+		to_char(to_date(regdate),'YYYY-MM') =
+		to_char(to_date(sysdate),'YYYY-MM')
+	</select>
+
+	<select id="get30takeList" resultType="Manager">
+		SELECT
+		to_char(SUM(take),'fm999,999,999,999') as take
+		FROM manager_main
+		WHERE
+		to_char(to_date(regdate),'YYYY-MM') =
+		to_char(to_date(sysdate),'YYYY-MM')
+	</select>
+
+	<select id="get30visitcntList" resultType="Manager">
+		SELECT SUM(visitcnt)
+		as visitcnt
+		FROM manager_main
+		WHERE
+		to_char(to_date(regdate),'YYYY-MM') =
+		to_char(to_date(sysdate),'YYYY-MM')
+	</select>
+
+	<select id="get30joincntList" resultType="Manager">
+		SELECT SUM(joincnt) as
+		joincnt
+		FROM manager_main
+		WHERE
+		to_char(to_date(regdate),'YYYY-MM') =
+		to_char(to_date(sysdate),'YYYY-MM')
+	</select>
+
+	<select id="get30inquirycntList" resultType="Manager">
+		SELECT
+		SUM(inquirycnt) as inquirycnt
+		FROM manager_main
+		WHERE
+		to_char(to_date(regdate),'YYYY-MM') =
+		to_char(to_date(sysdate),'YYYY-MM')
+	</select>
+
+	<select id="getCustomerList" parameterType="SearchVO"
+		resultType="Customer">
+		SELECT cno
+		,nickname
+		,adminck
+		,name
+		,memberid
+		,to_char(regdate,
+		'YYYY-MM-DD')
+		regdate
+		,email
+		,memo
+		FROM (
+		SELECT ROWNUM AS rnum, a.*
+		FROM (
+		SELECT * FROM manager_customer WHERE
+		del_yn='n'
+
+		<if test="keyword != null">
+			<choose>
+				<when test="type == 'nickname'"> AND nickname like '%'||#{keyword}||'%' </when>
+				<when test="type == 'name'">AND name like '%'||#{keyword}||'%' </when>
+				<when test="type == 'memberid'"> AND memberid like '%'||#{keyword}||'%' </when>
+			</choose>
+		</if>
+
+		order by cno desc ) a
+		)
+		WHERE rnum between #{startRow} and #{endRow}
+		
+	</select>
+
+	<select id="getCustomerTotalRow" parameterType="SearchVO"
+		resultType="int">
+		SELECT count(*) as totalrow
+		FROM manager_customer
+		WHERE del_yn='n'
+		<if test="keyword != null">
+			<choose>
+				<when test="type == 'nickname'">AND nickname like '%'||#{keyword}||'%' </when>
+				<when test="type == 'name'">AND name like '%'||#{keyword}||'%' </when>
+				<when test="type == 'memberid'">AND memberid like '%'||#{keyword}||'%' </when>
+			</choose>
+		</if>
+	</select>
+
+	<delete id="deleteCustomer">
+		UPDATE manager_customer
+		SET
+		del_yn='y'
+		WHERE
+		to_char(cno) = #{cno}
+	</delete>
+
+	<select id="totalcnt" resultType="Customer">
+		SELECT count(*) as total
+		FROM
+		(SELECT * FROM manager_customer WHERE del_yn='n')
+	</select>
+
+	<select id="generalcnt" resultType="Customer">
+		SELECT count(*) as general
+		FROM (SELECT * FROM manager_customer WHERE del_yn='n')
+		WHERE adminck =
+		0
+	</select>
+
+	<select id="getOrderList" parameterType="SearchVO"
+		resultType="Order">
+		SELECT ono
+		,to_char(regdate,'YYYY-MM-DD')
+		regdate
+		,orderno
+		,kitname
+		,name
+		,payment
+		,kitprice
+		,orderstate
+		,waybilno
+		,senddate
+		,to_char(totalcost,'fm999,999,999,999') as totalcost
+		,kitstock
+		FROM (
+		SELECT ono AS
+		rnum, a.*
+		FROM (
+		SELECT * FROM manager_order
+		WHERE del_yn='n'
+		<if test="keyword != null">
+			<choose>
+				<when test="type == 'orderno'"> AND orderno like '%'||#{keyword}||'%' </when>
+				<when test="type == 'name'">AND name like '%'||#{keyword}||'%' </when>
+				<when test="type == 'kitname'"> AND kitname like '%'||#{keyword}||'%' </when>
+			</choose>
+		</if>
+
+		order by ono desc) a
+		)
+		WHERE rnum between #{startRow} and #{endRow}
+		
+	</select>
+
+	<select id="getOrderTotalRow" parameterType="SearchVO"
+		resultType="int">
+		SELECT count(*) as totalrow
+		FROM manager_order
+		WHERE del_yn='n'
+		<if test="keyword != null">
+			<choose>
+				<when test="type == 'orderno'">AND orderno like '%'||#{keyword}||'%' </when>
+				<when test="type == 'name'">AND name like '%'||#{keyword}||'%' </when>
+				<when test="type == 'kitname'">AND kitname like '%'||#{keyword}||'%' </when>
+			</choose>
+		</if>
+	</select>
+
+	<delete id="deleteOrder">
+		UPDATE manager_order
+		SET
+		del_yn='y'
+		WHERE
+		to_char(ono) =
+		#{ono}
+	</delete>
+	
+	<delete id="deleteOrderer">
+		UPDATE manager_orderer
+		SET
+		del_yn='y'
+		WHERE
+		to_char(ono) =
+		#{ono}
+	</delete>
+	
+	<delete id="deleteProcessing">
+		UPDATE manager_processing
+		SET
+		del_yn='y'
+		WHERE
+		to_char(pno) =
+		#{ono}
+	</delete>
+	
+	<delete id="deleteReciever">
+		UPDATE manager_reciever
+		SET
+		del_yn='y'
+		WHERE
+		to_char(rno) =
+		#{ono}
+	</delete>
+
+	<select id="managercnt" resultType="Customer">
+		SELECT count(*) as manager
+		FROM (SELECT * FROM manager_customer WHERE del_yn='n')
+		WHERE adminck =
+		1
+	</select>
+
+	<select id="getCustomerInfo" resultType="Customer">
+		SELECT
+		cno
+		,nickname
+		,adminck
+		,name
+		,memberid
+		,to_char(regdate,
+		'YYYY-MM-DD')
+		regdate
+		,email
+		,memo
+		FROM manager_customer
+		WHERE
+		cno =
+		#{cno}
+	</select>
+
+	<update id="updateCustomer">
+		UPDATE manager_customer
+		SET name =#{name},nickname =
+		#{nickname}, email = #{email}, memberid =
+		#{memberid}, memo = #{memo},
+		adminck = #{adminck}
+		WHERE cno = #{cno}
+	</update>
+
+	<select id="postcnt" resultType="Inquiry">
+		SELECT count(*) as postcnt
+		FROM
+		shop_inquiry
+		WHERE memberid = (Select memberid FROM manager_customer
+		WHERE cno = #{cno})
+	</select>
+	
+	<select id="cusordercnt" resultType="Order">
+		SELECT count(*) as ordercnt
+		FROM
+		manager_order
+		WHERE memberid = (Select memberid FROM manager_customer
+		WHERE cno = #{cno})
+	</select>
+
+	<select id="ordercnt" resultType="Order">
+		SELECT count(*) as totalcnt
+		FROM manager_order
+	</select>
+
+	<select id="getOrderInfo" resultType="Order">
+		SELECT ono
+		,to_char(regdate,'YYYY-MM-DD')
+		regdate
+		,orderno
+		,kitname
+		,name
+		,payment
+		,kitprice
+		,orderstate
+		,waybilno
+		,to_char(senddate,
+		'YYYY/MM/DD')
+		senddate
+		,sendername
+		,bankname
+		,kitstock
+		,to_char(totalcost,'fm999,999,999,999') as totalcost
+		FROM manager_order
+		WHERE
+		ono =
+		#{ono}
+	</select>
+
+	<select id="getOrdererInfo" resultType="Orderer">
+		SELECT *
+		FROM
+		manager_orderer
+		WHERE orderno = (SELECT orderno FROM manager_order
+		WHERE ono = #{ono})
+	</select>
+
+	<select id="getProcessingInfo" resultType="Processing">
+		SELECT pno
+		,to_char(reception,'YYYY-MM-DD')
+		reception
+		,to_char(paymentcom,'YYYY-MM-DD')
+		paymentcom
+		,to_char(deliverycom,'YYYY-MM-DD')
+		deliverycom
+		,to_char(cancel,'YYYY-MM-DD')
+		cancel
+		FROM manager_processing
+		WHERE
+		orderno = (SELECT orderno FROM manager_order
+		WHERE ono = #{ono})
+	</select>
+
+	<select id="getRecieverInfo" resultType="Reciever">
+		SELECT *
+		FROM
+		manager_Reciever
+		WHERE orderno = (SELECT orderno FROM manager_order
+		WHERE ono = #{ono})
+	</select>
+
+	<update id="updateOrder">
+		UPDATE manager_order
+		SET
+		waybilno = #{waybilno}, senddate = #{senddate}
+		WHERE ono = #{ono}
+	</update>
+
+	<update id="updateReciever">
+		UPDATE manager_reciever
+		SET cancelreason =
+		#{cancelreason}, memo = #{memo}
+		WHERE orderno = (SELECT orderno FROM
+		manager_order
+		WHERE ono = #{ono})
+	</update>
+
+	<select id="getAccountList" resultType="Account">
+		SELECT *
+		FROM
+		manager_account
+		order by ano asc
+	</select>
+
+	<select id="getDeliveryList" resultType="Delivery">
+		SELECT
+		dno
+		,company
+		,link
+		,cost
+		FROM manager_delivery
+		order
+		by dno desc
+	</select>
+
+	<delete id="deleteAccount">
+		DELETE
+		FROM manager_account
+		where ano = #{ano}
+	</delete>
+
+	<update id="updateAccount">
+		UPDATE manager_account
+		SET bankname = #{bankname},
+		account = #{account}, accountholder = #{accountholder}
+		WHERE ano =
+		#{ano}
+	</update>
+
+	<insert id="addAccount" keyProperty="ano">
+		<selectKey keyProperty="ano" resultType="int" order="BEFORE">
+			SELECT
+			COALESCE(MAX(ano), 0) + 1 AS ano
+			FROM manager_account
+		</selectKey>
+
+		INSERT INTO manager_account (
+		ano
+		,bankname
+		,account
+		,accountholder
+		)
+		VALUES (
+		#{ano}
+		,#{bankname}
+		,#{account}
+		,#{accountholder}
+		)
+	</insert>
+
+	<update id="updateDelivery">
+		UPDATE manager_delivery
+		SET company = #{company},
+		link
+		= #{link}, cost = #{cost}
+		WHERE dno = #{dno}
+	</update>
+
+	<update id="updatePaymentcom">
+		UPDATE manager_processing
+		SET paymentcom = sysdate
+		WHERE orderno = (SELECT orderno FROM manager_order WHERE to_char(ono)
+		= #{ono})
+		AND '결제완료' = (SELECT orderstate FROM manager_order WHERE
+		to_char(ono) = #{ono})
+	</update>
+
+	<update id="updateDeliverycom">
+		UPDATE manager_processing
+		SET deliverycom = sysdate
+		WHERE orderno = (SELECT orderno FROM manager_order WHERE to_char(ono)
+		= #{ono})
+		AND '배송완료' = (SELECT orderstate FROM manager_order WHERE
+		to_char(ono) = #{ono})
+	</update>
+
+	<update id="updateCancel">
+		UPDATE manager_processing
+		SET cancel = sysdate
+		WHERE
+		orderno = (SELECT orderno FROM manager_order WHERE to_char(ono) =
+		#{ono})
+		AND '주문취소' = (SELECT orderstate FROM manager_order WHERE
+		to_char(ono) = #{ono})
+	</update>
+
+	<update id="updateOrderstate">
+		UPDATE manager_order
+		SET orderstate = #{orderstate}
+		WHERE orderno = #{orderno}
+	</update>
+
+	<select id="getKitList" resultType="Kit">
+		SELECT kno, kitname, to_char(kitprice,'fm999,999,999,999') as stkitprice, kitstock, to_char(regdate, 'YYYY-MM-DD')
+		regdate, kitcontents
+		FROM manager_kit
+		WHERE del_yn='n' order by kno desc
+	</select>
+
+
+	<select id="getKitInfo" resultType="Kit">
+		SELECT kno, kitname, kitprice, kitstock,to_char(regdate, 'YYYY-MM-DD')
+		regdate, kitcontents
+		FROM manager_kit
+		WHERE kno = #{kno}
+	</select>
+
+	<!-- 상품 등록 -->
+	<insert id="addKit" keyProperty="kno">
+		<selectKey keyProperty="kno" resultType="int" order="BEFORE">
+			SELECT COALESCE(MAX(kno), 0) + 1 AS kno
+			FROM manager_kit
+		</selectKey>
+
+		INSERT INTO manager_kit(kno, kitname, kitprice, kitstock, kitcontents)
+		values(#{kno},#{kitname},#{kitprice}, #{kitstock},#{kitcontents})
+	</insert>
+
+	<update id="updateKit">
+		UPDATE manager_kit
+		SET kitname =#{kitname}, kitstock =
+		#{kitstock}, kitprice = #{kitprice}, kitcontents =
+		#{kitcontents}
+		WHERE kno = #{kno}
+	</update>
+
+	<update id="deleteKit">
+		UPDATE manager_kit
+		SET del_yn='y'
+		WHERE to_char(kno) = #{kno}
+	</update>
+
+	<update id="deleteinq">
+		UPDATE shop_inquiry
+		SET del_yn='y'
+		WHERE to_char(ino) = #{ino}
+	</update>
+
+
+	<delete id="deleteinqreply">
+
+		delete FROM inquiry_reply where ino = #{ino}
+
+	</delete>
+
+
+	<!-- 상품문의 -->
+
+	<select id="getInquiryList" parameterType="SearchVO"
+		resultType="Inquiry">
+		SELECT ino, memberid, title, kitname, contents, to_char(regdate,
+		'YYYY-MM-DD') regdate, replycnt, kno, qnatype
+		FROM ( SELECT
+		ROWNUM AS rnum, a.*
+		FROM (
+		SELECT * FROM shop_inquiry WHERE del_yn='n'
+
+		<if test="keyword != null">
+			<choose>
+				<when test="type == 'title'"> AND title like '%'||#{keyword}||'%' </when>
+				<when test="type == 'memberid'">AND memberid like '%'||#{keyword}||'%' </when>
+				<when test="type == 'kitname'"> AND kitname like '%'||#{keyword}||'%' </when>
+			</choose>
+		</if>
+
+		order by ino desc ) a
+		)
+		WHERE rnum between #{startRow} and #{endRow}
+	</select>
+
+	<select id="getTotalRow" parameterType="SearchVO"
+		resultType="int">
+		SELECT count(*) AS totalrow
+		FROM shop_inquiry
+		WHERE del_yn='n'
+		<if test="keyword != null">
+			<choose>
+				<when test="type == 'title'"> AND title like '%'||#{keyword}||'%' </when>
+				<when test="type == 'memberid'">AND memberid like '%'||#{keyword}||'%' </when>
+				<when test="type == 'kitname'"> AND kitname like '%'||#{keyword}||'%' </when>
+			</choose>
+		</if>
+	</select>
+
+	<select id="getInquiryInfo" resultType="Inquiry">
+		SELECT ino, memberid, title, kitname, contents, to_char(regdate, 'YYYY-MM-DD') regdate, replycnt, kno, qnatype
+		FROM shop_inquiry
+		WHERE ino = #{ino}
+	</select>
+
+	<update id="incrementReplyCnt">
+		UPDATE shop_inquiry
+		SET replycnt = replycnt + 1
+		WHERE ino = #{ino}
+	</update>
+
+	<select id="getFileList" resultType="AttFileVO">
+		SELECT fno, ino, ofilename, sfilename, filesize
+		FROM inquiry_file
+		WHERE ino = #{ino}
+	</select>
+
+	<select id="getReplyList" resultType="ReplyVO">
+		SELECT rno,ino,contents,managerid,to_char(regdate,'YYYY-MM-DD')
+		regdate
+		FROM inquiry_reply
+		WHERE ino = #{ino} and del_yn='n'
+	</select>
+
+	<select id="getReply" resultType="ReplyVO">
+		SELECT rno, ino, contents, managerid, regdate FROM inquiry_reply
+		WHERE rno = #{rno}
+	</select>
+
+	<insert id="writeReply" keyProperty="rno">
+		<selectKey keyProperty="rno" resultType="int" order="BEFORE">
+			SELECT COALESCE(MAX(rno), 0) + 1 AS rno
+			FROM inquiry_reply
+		</selectKey>
+
+		INSERT INTO inquiry_reply ( rno, ino, contents, managerid )
+		VALUES ( #{rno}, #{ino}, #{contents}, #{managerid} )
+	</insert>
+
+
+
+	<!-- 이미지 등록 -->
+	<insert id="imageEnroll">
+
+		insert into goods_image(kno, fileName, uploadPath, uuid) values (#{kno},
+		#{fileName}, #{uploadPath}, #{uuid})
+
+	</insert>
+
+	<!-- 지정 상품 이미지 전체 삭제 -->
+	<delete id="deleteImageAll">
+
+		delete FROM goods_image where kno = #{kno}
+
+	</delete>
+
+	<!-- 어제자 날자 이미지 리스트 -->
+	<select id="checkFileList" resultType="AttachImageVO">
+
+		select * from goods_image where uploadpath = to_char(sysdate -1,
+		'yyyy\mm\dd')
+
+	</select>
+
+	<!-- 지정 상품 이미지 정보 얻기 -->
+	<select id="getAttachInfo" resultType="AttachImageVO">
+
+		select * from goods_image where kno = #{kno}
+
+	</select>
+	
+	<select id="getPlantList" parameterType="SearchVO"
+		resultType="Plant">
+		SELECT *
+		FROM ( SELECT
+		ROWNUM AS rnum, a.*
+		FROM (
+		SELECT * 
+		FROM SmartPot_Plant
+		WHERE
+		<choose>
+			<when test="keyword != null">kind like '%'||#{keyword}||'%'</when>
+		</choose>
+		order by pno desc ) a
+		)
+		WHERE rnum between #{startRow} and #{endRow}
+
+	</select>
+
+	<select id="getPlantTotalRow" parameterType="SearchVO"
+		resultType="int">
+		SELECT count(*) AS totalrow
+		FROM SmartPot_Plant
+		WHERE
+		<choose>
+			<when test="keyword != null">kind like '%'||#{keyword}||'%'</when>
+		</choose>
+	</select>
+	
+	<select id="plantcnt" resultType="Plant">
+		SELECT count(*) as total
+		FROM SmartPot_Plant
+	</select>
+	
+	<insert id="AddPlant" keyProperty="pno">
+		<selectKey keyProperty="pno" resultType="int" order="BEFORE">
+			SELECT COALESCE(MAX(pno),0) + 1 AS pno FROM smartpot_plant
+		</selectKey>
+		
+		INSERT INTO smartpot_plant (pno, contents, category, kind, image)
+		VALUES (#{pno},#{contents},#{category},#{kind},#{image, jdbcType=VARCHAR})
+	</insert>
+	
+	<delete id="deletePlant">
+		DELETE
+		FROM smartpot_plant
+		WHERE to_char(pno) = #{pno}
+	</delete>
+	
+	<select id="getPlant" resultType="Plant">
+	SELECT *
+		FROM SmartPot_Plant
+		WHERE to_char(pno) =#{pno}
+	</select>
+	
+	<select id="getPlant2" resultType="Plant">
+		SELECT *
+		FROM SmartPot_Plant
+	</select>
+	
+</mapper>

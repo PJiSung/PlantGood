@@ -1,0 +1,564 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jang.biz.mapper.ShopMapper">
+
+	<select id="getGoodsList" resultType="Kit">
+		SELECT 
+		kno
+		,kitname
+		,to_char(kitprice,'fm999,999,999,999') as
+		stkitprice
+		,kitstock
+		,kitcontents
+		FROM manager_kit
+		WHERE del_yn='n'
+		order by kno desc
+	</select>
+
+
+	<select id="getGoodsInfo" resultType="Kit">
+		SELECT kno, kitname, kitprice, to_char(kitprice,'fm999,999,999,999') as
+		stkitprice, kitstock, kitcontents
+		FROM manager_kit
+		WHERE kno = #{kno}
+	</select>
+
+
+	<select id="getUser" resultType="UserVO">
+		SELECT *
+		FROM manager_customer
+		WHERE cno = #{cno}
+	</select>
+
+
+	<insert id="writeArticle" keyProperty="ino">
+		<selectKey keyProperty="ino" resultType="int" order="BEFORE">
+			SELECT COALESCE(MAX(ino), 0) + 1 AS ino FROM shop_inquiry
+		</selectKey>
+
+		INSERT INTO shop_inquiry (ino, memberid, title, contents, qnatype)
+		VALUES ( #{ino}, #{memberid}, #{title}, #{contents}, #{qnatype} )
+
+	</insert>
+
+
+	<insert id="insertFile" keyProperty="fno">
+		<selectKey keyProperty="fno" resultType="int" order="BEFORE">
+			SELECT COALESCE(MAX(fno), 0) + 1 AS fno
+			FROM inquiry_file
+		</selectKey>
+
+		INSERT INTO inquiry_file (fno, ino, ofilename, sfilename, filesize )
+		VALUES ( #{fno}, #{ino}, #{ofilename}, #{sfilename}, #{filesize})
+	</insert>
+
+
+	<select id="getFileList" resultType="AttFileVO">
+		SELECT fno, ino, ofilename, sfilename, filesize
+		FROM inquiry_file
+		WHERE ino = #{ino}
+	</select>
+
+
+	<select id="getInquiryList" parameterType="String"
+		resultType="Inquiry">
+		SELECT ino, memberid, title, kitname, contents, to_char(regdate,
+		'YYYY-MM-DD') regdate, replycnt, qnatype
+		FROM shop_inquiry
+		where memberid = #{memberid}
+		AND del_yn='n'
+		order by ino asc
+	</select>
+
+	<select id="getInquiryInfo" resultType="Inquiry">
+		SELECT ino, memberid, title, kitname, contents, to_char(regdate,
+		'YYYY-MM-DD') regdate, replycnt, qnatype
+		FROM shop_inquiry
+		WHERE ino = #{ino}
+	</select>
+
+	<select id="getReplyList" resultType="ReplyVO">
+		SELECT rno,ino,contents,managerid,to_char(regdate,'YYYY-MM-DD') regdate
+		FROM inquiry_reply
+		WHERE ino = #{ino} and del_yn='n'
+	</select>
+
+	<select id="getReply" resultType="ReplyVO">
+		SELECT rno, ino, contents, managerid, regdate FROM inquiry_reply
+		WHERE rno = #{rno}
+	</select>
+
+
+	<select id="getCustomerList" resultType="UserVO">
+		SELECT *
+		FROM manager_customer
+		WHERE del_yn='n'
+		order by cno desc
+	</select>
+
+	<select id="getCustomerInfo" resultType="Customer">
+		SELECT
+		cno
+		,name
+		,email
+		,phone
+		,zip
+		,addr1
+		,addr2
+		FROM manager_customer
+		WHERE
+		memberid = #{memberid}
+	</select>
+
+	<insert id="addReciever" keyProperty="rno">
+		<selectKey keyProperty="rno" resultType="int" order="BEFORE">
+			SELECT
+			COALESCE(MAX(rno), 0) + 1 AS rno
+			FROM manager_reciever
+		</selectKey>
+
+		INSERT INTO manager_reciever (
+		rno
+		,name
+		,phone
+		,zip
+		,addr1
+		,addr2
+		,orderno
+		)
+		VALUES (
+		#{rno}
+		,#{rname}
+		,#{rphone}
+		,#{rzip}
+		,#{raddr1}
+		,#{raddr2}
+		,#{orderno}
+		)
+	</insert>
+
+	<insert id="addOrderer" keyProperty="ono">
+		<selectKey keyProperty="ono" resultType="int" order="BEFORE">
+			SELECT
+			COALESCE(MAX(ono), 0) + 1 AS ono
+			FROM manager_orderer
+		</selectKey>
+
+		INSERT INTO manager_orderer (
+		ono
+		,name
+		,phone
+		,zip
+		,addr1
+		,addr2
+		,email
+		,orderno
+		)
+		VALUES (
+		#{ono}
+		,#{name}
+		,#{phone}
+		,#{zip}
+		,#{addr1}
+		,#{addr2}
+		,#{email}
+		,#{orderno}
+		)
+	</insert>
+
+	<insert id="addOrder" keyProperty="ono">
+		<selectKey keyProperty="ono" resultType="int" order="BEFORE">
+			SELECT
+			COALESCE(MAX(ono), 0) + 1 AS ono
+			FROM manager_order
+		</selectKey>
+
+		INSERT INTO manager_order (
+		ono
+		,kitname  
+		,name
+		,kitprice  
+		,orderno
+		,bankname
+		,memberid
+		,kitstock 
+		,totalcost
+		,kno
+		)
+		VALUES (
+		#{ono}
+		,#{kitname}
+		,#{name}
+		,#{kitprice}
+		,#{orderno}
+		,#{bankname}
+		,#{memberid}
+		,#{kitstock}
+		,#{totalcost}
+		,#{kno}
+		)
+	</insert>
+
+	<insert id="addProcessing" keyProperty="pno">
+		<selectKey keyProperty="pno" resultType="int" order="BEFORE">
+			SELECT
+			COALESCE(MAX(pno), 0) + 1 AS pno
+			FROM manager_processing
+		</selectKey>
+
+		INSERT INTO manager_processing (
+		pno
+		,reception
+		,orderno
+		)
+		VALUES (
+		#{pno}
+		,sysdate
+		,#{orderno}
+		)
+	</insert>
+
+	<select id="getOrder1WList" parameterType="String"
+		resultType="Order">
+		SELECT ono
+		,to_char(regdate,'YYYY.MM.DD')
+		regdate
+		,orderno
+		,kitname
+		,kitprice
+		,memberid
+		,kitstock
+		,orderstate
+		,kno
+		FROM manager_order
+		WHERE <![CDATA[regdate >= to_char(sysdate-7,'YYYYMMDD')]]>
+		AND memberid = #{memberid}
+		order by ono desc
+	</select>
+
+	<select id="getReciever1WList" parameterType="String"
+		resultType="Reciever">
+		SELECT rno
+		,zip
+		,addr1
+		,addr2
+		FROM manager_reciever
+		WHERE orderno IN
+		(SELECT orderno FROM manager_order WHERE <![CDATA[regdate >= to_char(sysdate-7,'YYYYMMDD')]]>)
+		AND orderno IN (SELECT orderno FROM manager_order WHERE memberid = #{memberid})
+		order by rno desc
+	</select>
+
+	<select id="getOrder1MList" parameterType="String"
+		resultType="Order">
+		SELECT ono
+		,to_char(regdate,'YYYY.MM.DD')
+		regdate
+		,orderno
+		,kitname
+		,kitprice
+		,memberid
+		,kitstock
+		,orderstate
+		,kno
+		FROM manager_order
+		WHERE <![CDATA[regdate >= to_char(add_months(sysdate,-1),'YYYYMMDD')]]>
+		AND memberid = #{memberid}
+		order by ono desc
+	</select>
+
+	<select id="getReciever1MList" parameterType="String"
+		resultType="Reciever">
+		SELECT rno
+		,zip
+		,addr1
+		,addr2
+		FROM manager_reciever
+		WHERE orderno IN
+		(SELECT orderno FROM manager_order WHERE <![CDATA[regdate >= to_char(add_months(sysdate,-1),'YYYYMMDD')]]>)
+		AND orderno IN (SELECT orderno FROM manager_order WHERE memberid =
+		#{memberid})
+		order by rno desc
+	</select>
+
+	<select id="getOrder3MList" parameterType="String"
+		resultType="Order">
+		SELECT ono
+		,to_char(regdate,'YYYY.MM.DD')
+		regdate
+		,orderno
+		,kitname
+		,kitprice
+		,memberid
+		,kitstock
+		,orderstate
+		,kno
+		FROM manager_order
+		WHERE <![CDATA[regdate >= to_char(add_months(sysdate,-3),'YYYYMMDD')]]>
+		AND memberid = #{memberid}
+		order by ono desc
+	</select>
+
+	<select id="getReciever3MList" parameterType="String"
+		resultType="Reciever">
+		SELECT rno
+		,zip
+		,addr1
+		,addr2
+		FROM manager_reciever
+		WHERE orderno IN
+		(SELECT orderno FROM manager_order WHERE <![CDATA[regdate >= to_char(add_months(sysdate,-3),'YYYYMMDD')]]>)
+		AND orderno IN (SELECT orderno FROM manager_order WHERE memberid =
+		#{memberid})
+		order by rno desc
+	</select>
+
+	<select id="getOrder6MList" parameterType="String"
+		resultType="Order">
+		SELECT ono
+		,to_char(regdate,'YYYY.MM.DD')
+		regdate
+		,orderno
+		,kitname
+		,kitprice
+		,memberid
+		,kitstock
+		,orderstate
+		,kno
+		FROM manager_order
+		WHERE <![CDATA[regdate >= to_char(add_months(sysdate,-6),'YYYYMMDD')]]>
+		AND memberid = #{memberid}
+		order by ono desc
+	</select>
+
+	<select id="getReciever6MList" parameterType="String"
+		resultType="Reciever">
+		SELECT rno
+		,zip
+		,addr1
+		,addr2
+		FROM manager_reciever
+		WHERE orderno IN
+		(SELECT orderno FROM manager_order WHERE <![CDATA[regdate >= to_char(add_months(sysdate,-6),'YYYYMMDD')]]>)
+		AND orderno IN (SELECT orderno FROM manager_order WHERE memberid =
+		#{memberid})
+		order by rno desc
+	</select>
+	
+	<select id="getOrderSearchList" parameterType="String"
+		resultType="Order">
+		SELECT ono
+		,to_char(regdate,'YYYY.MM.DD')
+		regdate
+		,orderno
+		,kitname
+		,kitprice
+		,memberid
+		,kitstock
+		,orderstate
+		,kno
+		FROM manager_order
+		WHERE regdate between to_date(#{regdate1}, 'YYYY-MM-DD') and to_date(#{regdate2}, 'YYYY-MM-DD')
+		AND memberid = #{memberid}
+		order by ono desc
+	</select>
+
+	<select id="getRecieverSearchList" parameterType="String"
+		resultType="Reciever">
+		SELECT rno
+		,zip
+		,addr1
+		,addr2
+		FROM manager_reciever
+		WHERE orderno IN
+		(SELECT orderno FROM manager_order WHERE regdate between to_date(#{regdate1}, 'YYYY-MM-DD') and to_date(#{regdate2}, 'YYYY-MM-DD')
+		AND orderno IN (SELECT orderno FROM manager_order WHERE memberid = #{memberid}))
+		order by rno desc
+	</select>
+
+	<select id="getCostInfo" resultType="Delivery">
+		SELECT dno
+		,company
+		,to_char(cost,'fm999,999,999,999') as stcost
+		,link
+		,cost
+		FROM manager_delivery
+		WHERE dno = 1
+	</select>
+
+	<select id="getOrderInfo" resultType="Order">
+		SELECT ono
+		,to_char(regdate,'YYYY.MM.DD')
+		regdate
+		,orderno
+		,kitname
+		,name
+		,payment
+		,kitprice
+		,orderstate
+		,waybilno
+		,to_char(senddate,
+		'YYYY/MM/DD')
+		senddate
+		,sendername
+		,kitstock
+		,bankname
+		,to_char(totalcost,'fm999,999,999,999')
+		as totalcost
+		,kno
+		FROM manager_order
+		WHERE
+		orderno =
+		#{orderno}
+	</select>
+
+
+	<select id="getOrdererInfo" resultType="Orderer">
+		SELECT *
+		FROM
+		manager_orderer
+		WHERE orderno = #{orderno}
+	</select>
+
+	<select id="getRecieverInfo" resultType="Reciever">
+		SELECT *
+		FROM
+		manager_Reciever
+		WHERE orderno = #{orderno}
+	</select>
+	
+	<select id="LastOrder" resultType="Order">
+		SELECT ono
+		,to_char(totalcost,'fm999,999,999,999') as totalcost
+		FROM manager_order
+		WHERE ono = (SELECT MAX(ono) FROM manager_order)
+	</select>
+	
+	<select id="LastReciever" resultType="Reciever">
+		SELECT rno
+		,zip
+		,addr1
+		,addr2
+		FROM manager_reciever
+		WHERE rno = (SELECT MAX(rno) FROM manager_reciever)
+	</select>
+
+	<update id="UpdateKit">
+		UPDATE manager_kit
+		SET kitstock = #{stock}
+		WHERE kno = #{kno}
+	</update>
+
+	<update id="UpdateOrdercnt">
+		UPDATE manager_main
+		SET ordercnt = ordercnt + 1
+		WHERE
+		to_char(regdate,'yyyymmdd') = to_char(sysdate,'yyyymmdd')
+	</update>
+
+	<update id="UpdateTake">
+		UPDATE manager_main
+		SET take = take + #{totalcost}
+		WHERE
+		to_char(regdate,'yyyymmdd') = to_char(sysdate,'yyyymmdd')
+	</update>
+
+	<update id="UpdateInquirycnt">
+		UPDATE manager_main
+		SET inquirycnt = inquirycnt + 1
+		WHERE
+		to_char(regdate,'yyyymmdd') = to_char(sysdate,'yyyymmdd')
+	</update>
+
+	<update id="Visitcnt">
+		UPDATE manager_main
+		SET visitcnt = visitcnt + 1
+		WHERE
+		to_char(regdate,'yyyymmdd') = to_char(sysdate,'yyyymmdd')
+	</update>
+
+	<select id="getAccountList" resultType="Account">
+		SELECT *
+		FROM
+		manager_account
+	</select>
+	
+	<insert id="addBasketY" keyProperty="bno">
+		<selectKey keyProperty="bno" resultType="int" order="BEFORE">
+			SELECT COALESCE(MAX(bno), 0) + 1 AS bno FROM shop_basket
+		</selectKey>
+
+		INSERT INTO shop_basket (bno, kitname, kitprice, kitstock, totalprice, memberid ,single, kno)
+		VALUES (#{bno}, #{kitname}, #{kitprice}, #{kitstock}, #{totalprice}, #{memberid} ,'y', #{kno} )
+
+	</insert>
+	
+	<insert id="addBasketN" keyProperty="bno">
+		<selectKey keyProperty="bno" resultType="int" order="BEFORE">
+			SELECT COALESCE(MAX(bno), 0) + 1 AS bno FROM shop_basket
+		</selectKey>
+
+		INSERT INTO shop_basket (bno, kitname, kitprice, kitstock, totalprice, memberid ,single, kno)
+		VALUES (#{bno}, #{kitname}, #{kitprice}, #{kitstock}, #{totalprice}, #{memberid} ,'n', #{kno})
+
+	</insert>
+	
+	<select id="getBasketListY" resultType="Basket">
+		SELECT
+		bno
+		,kitname
+		,to_char(kitprice,'fm999,999,999,999') as
+		stkitprice
+		,kitprice
+		,kitstock
+		,totalprice
+		,to_char(totalprice,'fm999,999,999,999') as
+		sttotalprice
+		,kno
+		FROM shop_basket
+		WHERE single = 'y' 
+		AND memberid = #{memberid}
+	</select>
+	
+	<select id="getBasketListN" resultType="Basket">
+		SELECT
+		bno
+		,kitname
+		,to_char(kitprice,'fm999,999,999,999') as
+		stkitprice
+		,kitprice
+		,kitstock
+		,totalprice
+		,to_char(totalprice,'fm999,999,999,999') as
+		sttotalprice
+		,kno
+		FROM shop_basket
+		WHERE single = 'n'
+		AND memberid = #{memberid}
+	</select>
+	
+	<delete id="deleteBasket">
+		DELETE 
+		FROM shop_basket
+		WHERE
+		to_char(bno) = #{bno}
+	</delete>
+	
+	<delete id="deleteAllBasket">
+		DELETE 
+		FROM shop_basket
+		WHERE
+		memberid = #{memberid}
+	</delete>
+	
+	<update id="updateBasket">
+		UPDATE shop_basket
+		SET  kitstock = #{kitstock}, totalprice = #{totalprice}
+		WHERE
+		bno = #{bno}
+	</update>
+	
+	
+</mapper>

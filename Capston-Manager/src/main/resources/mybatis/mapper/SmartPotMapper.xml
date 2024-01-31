@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jang.biz.mapper.SmartPotMapper">
+
+	<select id="getSearchList" parameterType="SearchVO"
+		resultType="Plant">
+		SELECT *
+		FROM SmartPot_Plant
+		WHERE
+		<choose>
+			<when test="keyword == ''">kind is null</when>
+			<when test="keyword != null">kind like '%'||#{keyword}||'%'</when>
+		</choose>
+
+	</select>
+
+	<select id="getPlantList" resultType="Plant">
+		SELECT *
+		FROM SmartPot_Plant
+		WHERE category = #{category}
+	</select>
+	
+	<update id="DeletePlant">
+		UPDATE smartpot_registration
+		SET del_yn = 'y'
+		WHERE rno = #{rno}
+	</update>
+
+	<select id="getPlantInfo" resultType="Plant">
+		SELECT *
+		FROM SmartPot_Plant
+		WHERE pno = #{pno}
+	</select>
+
+	<insert id="addRegistration" keyProperty="rno">
+		<selectKey keyProperty="rno" resultType="int" order="BEFORE">
+			SELECT
+			COALESCE(MAX(rno), 0) + 1 AS rno FROM smartpot_registration
+		</selectKey>
+
+		INSERT INTO smartpot_registration (rno, memberid, kind, name, regdate)
+		VALUES ( #{rno}, #{memberid}, #{kind}, #{name}, #{regdate} )
+
+	</insert>
+	
+	<insert id="addControl" keyProperty="cno">
+		<selectKey keyProperty="cno" resultType="int" order="BEFORE">
+			SELECT
+			COALESCE(MAX(cno), 0) + 1 AS cno FROM smartpot_control
+		</selectKey>
+
+		INSERT INTO smartpot_control (cno, memberid, name)
+		VALUES ( #{cno}, #{memberid}, #{name})
+
+	</insert>
+	
+	<select id="getRegistration" resultType="Registration">
+		SELECT
+		rno
+		,kind
+		,name
+		,to_char(regdate,'yyyy-mm-dd') as regdate
+		,to_date(sysdate,'yy-mm-dd') - to_date(regdate,'yy-mm-dd')+1 as DAY
+		FROM SmartPot_registration
+		WHERE memberid = #{memberid} AND name = #{name}
+	</select>
+	
+	<select id="getCategoryInfo" resultType="Plant">
+		SELECT *
+		FROM SmartPot_Plant
+		WHERE kind = #{kind}
+	</select>
+	
+	<select id="getDiaryList" resultType="Diary">
+		SELECT
+		dno
+		,CONTENTS
+        ,to_char(regdate,'yyyymmdd') as regdate
+        ,to_date(regdate,'yy-mm-dd') - (SELECT regdate FROM smartpot_registration WHERE memberid = #{memberid} AND name = #{name})+1 as day
+        ,rn
+		FROM (select dno, contents, regdate
+        ,row_number() OVER(PARTITION by(to_date(regdate,'yy-mm-dd') - (SELECT regdate FROM smartpot_registration WHERE memberid = #{memberid} AND name = #{name}))order by regdate) as rn
+        from smartpot_diary where memberid = #{memberid} AND name=#{name})
+        WHERE rn=1
+	</select>
+	
+	<select id="getlastDay" resultType="Diary">
+		SELECT
+        MAX(to_date(regdate,'yy-mm-dd') - (SELECT regdate FROM smartpot_registration WHERE memberid = #{memberid} AND name = #{name})+1) as day
+		FROM smartpot_diary
+	</select>
+	
+	<select id="getContentsList" resultType="Diary">
+		SELECT
+		to_char(regdate,'HH24:MI') as regdate
+		,contents
+		FROM smartpot_diary
+		WHERE memberid = #{memberid} AND name = #{name} AND to_date(regdate,'yy/mm/dd') = to_date(#{regdate},'yy/mm/dd')
+		order by regdate
+	</select>
+	
+	<select id="getlastContents" resultType="Diary">
+		SELECT
+		to_char(regdate,'HH24:MI') as regdate
+		,contents
+		FROM smartpot_diary
+		WHERE memberid = #{memberid} AND name = #{name} AND to_date(regdate,'yy/mm/dd') in (select max(to_date(regdate,'yy/mm/dd')) from smartpot_diary)
+		order by regdate
+	</select>
+	
+	<select id="getRegistrationList" resultType="Registration">
+		SELECT *
+		FROM smartpot_registration
+		WHERE memberid = #{memberid}
+		AND del_yn = 'n'
+		order by rno desc
+	</select>
+	
+	<update id="updateControl">
+		UPDATE smartpot_control
+		SET hummax = #{humMax} , hummin = #{humMin}, temmax = #{temMax}, temMin = #{temMin}
+		WHERE cno = #{cno}
+	</update>
+	
+	<!-- 이미지 등록 -->
+	<insert id="imageEnroll">
+
+		insert into plant_image(rno, fileName, uploadPath, uuid) values (#{rno},
+		#{fileName}, #{uploadPath}, #{uuid})
+
+	</insert>
+	
+	
+	
+	<update id="temphumidataSave">
+		UPDATE smartpot_control
+		SET temperature = #{temperature}, humidity = #{humidity}
+		WHERE cno = '1'
+	</update>
+	
+	<select id="gettemphumidata" resultType="Control">
+		SELECT temperature, humidity
+		FROM smartpot_control
+		WHERE cno = '1'
+	</select>
+	
+	<insert id="leddataSave">
+
+		INSERT INTO smartpot_diary (memberid, name, contents)
+		VALUES (#{memberid}, #{name}, #{contents})
+
+	</insert>
+
+
+	
+	<select id="getimg" resultType="Registration">
+		SELECT *
+		FROM smartpot_registration
+		WHERE rno = #{rno}
+	</select>
+	
+	<!-- 지정 상품 이미지 정보 얻기 -->
+	<select id="getAttachInfo" resultType="PlantImageVO">
+
+		select * from plant_image where rno = #{rno}
+
+	</select>
+	
+	<update id="updateLedTime">
+		UPDATE smartpot_control
+		SET led = #{led}
+		WHERE cno = 1
+	</update>
+	
+	<select id="getPlantNameInfo" resultType="Plant">
+		SELECT *
+		FROM SmartPot_Plant
+		WHERE kind = #{kind}
+	</select>
+	
+	<select id="getControlInfo" resultType="Control">
+		SELECT *
+		FROM SmartPot_control
+		WHERE cno = 1
+	</select>
+	
+	<select id="dbgetrno" resultType="Registration">
+		SELECT memberid, name
+		FROM smartpot_registration
+		WHERE rno = #{rno}
+	</select>
+
+</mapper>
